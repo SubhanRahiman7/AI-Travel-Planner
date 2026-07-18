@@ -2,7 +2,7 @@ import os
 from dotenv import load_dotenv
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from routes import itinerary
+from routes import itinerary, cities
 from config import settings
 
 load_dotenv()
@@ -17,6 +17,7 @@ app.add_middleware(
 )
 
 app.include_router(itinerary.router, prefix="/api/v1", tags=["itinerary"])
+app.include_router(cities.router, prefix="/api/v1", tags=["cities"])
 
 
 @app.get("/api/v1/health")
