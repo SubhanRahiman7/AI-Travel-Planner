@@ -1,324 +1,246 @@
 import { formatINR } from "../api";
+import MapView from "./MapView";
 
 const dayIcon = (dayNum) => {
-	const icons = ["🌅", "🏛️", "🏔️", "🍜", "🌃", "🎨", "🏖️"];
-	return icons[(dayNum - 1) % icons.length];
+ const icons = ["🌅", "🏛️", "🏔️", "🍜", "🌃", "🎨", "🏖️"];
+ return icons[(dayNum - 1) % icons.length];
 };
 
-function MapView({ coords, places }) {
-	if (!coords) return null;
-	const { lat, lon } = coords;
-	const points = [coords, ...places.filter(p => p.lat && p.lon).map(p => ({ lat: p.lat, lon: p.lon, name: p.name }))];
-	if (points.length === 1) {
-		const d = 0.05;
-		const bbox = `${lon - d},${lat - d},${lon + d},${lat + d}`;
-		return (
-			<div className="rounded-xl overflow-hidden border border-white/10">
-				<iframe
-					title="destination-map"
-					width="100%"
-					height="320"
-					frameBorder="0"
-					scrolling="no"
-					src={`https://www.openstreetmap.org/export/embed.html?bbox=${bbox}&layer=mapnik&marker=${lat},${lon}`}
-				/>
-			</div>
-		);
-	}
-	const lats = points.map(p => p.lat);
-	const lons = points.map(p => p.lon);
-	const dLat = (Math.max(...lats) - Math.min(...lats)) / 2 + 0.02;
-	const dLon = (Math.max(...lons) - Math.min(...lons)) / 2 + 0.02;
-	const bbox = `${Math.min(...lons) - dLon},${Math.min(...lats) - dLat},${Math.max(...lons) + dLon},${Math.max(...lats) + dLat}`;
-	return (
-		<div className="rounded-xl overflow-hidden border border-white/10">
-			<iframe
-				title="destination-map"
-				width="100%"
-				height="360"
-				frameBorder="0"
-				scrolling="no"
-				src={`https://www.openstreetmap.org/export/embed.html?bbox=${bbox}&layer=mapnik&marker=${lat},${lon}`}
-			/>
-			<div className="bg-slate-900/80 px-4 py-2 text-xs text-slate-400 flex flex-wrap gap-3">
-				<span className="text-indigo-400">● Destination</span>
-				{points.slice(1).map((p, i) => (
-					<span key={i} className="text-pink-400">● {p.name}</span>
-				))}
-			</div>
-		</div>
-	);
+export default function Results({ data, onNewSearch }) {
+ const {
+ destination,
+ trip_summary,
+ days,
+ budget,
+ packing_list,
+ tips,
+ destination_coords,
+ weather = [],
+ enriched_places = [],
+ } = data;
+
+ const totalSpent = budget.flights + budget.hotels + budget.food + budget.transport + budget.activities;
+ const budgetRemaining = budget.total - totalSpent;
+ const withinBudget = budgetRemaining >= 0;
+
+ const budgetItems = [
+ { label: "Flights", value: budget.flights, color: "var(--color-coral)", icon: "✈️" },
+ { label: "Hotels", value: budget.hotels, color: "var(--color-rose)", icon: "🏨" },
+ { label: "Food", value: budget.food, color: "var(--color-purple)", icon: "🍽️" },
+ { label: "Transport", value: budget.transport, color: "var(--color-teal)", icon: "🚗" },
+ { label: "Activities", value: budget.activities, color: "var(--color-amber)", icon: "🎟️" },
+ ];
+ const maxVal = Math.max(...budgetItems.map((b) => b.value));
+ const budgetSegments = budgetItems.map((seg) => ({
+ ...seg,
+ pct: (seg.value / budget.total) * 100,
+ }));
+
+ const sectionLabel = (label) => (
+ <div style={{ fontFamily: "var(--font-heading)", fontSize: 13, fontWeight: 700, color: "var(--color-ink)", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 14 }}>
+ {label}
+ </div>
+ );
+
+ return (
+ <div className="anim-fade-up" style={{ padding: "40px 0 80px", display: "flex", flexDirection: "column", gap: 32 }}>
+ <button onClick={onNewSearch} style={{ background: "var(--color-cream)", border: "2px solid var(--color-ink)", color: "var(--color-ink)", borderRadius: 10, padding: "8px 16px", fontSize: 13, fontWeight: 700, cursor: "pointer", transition: "all 0.15s", alignSelf: "flex-start" }}
+ onMouseEnter={(e) => { e.currentTarget.style.background = "var(--color-lime)"; e.currentTarget.style.transform = "translateY(-2px)"; }}
+ onMouseLeave={(e) => { e.currentTarget.style.background = "var(--color-cream)"; e.currentTarget.style.transform = "translateY(0)"; }}>
+ ← New search
+ </button>
+
+ {/* Trip header */}
+ <div style={{ background: "linear-gradient(120deg, var(--color-coral), var(--color-rose) 60%, var(--color-purple))", borderRadius: 24, padding: 36, border: "2px solid var(--color-ink)", display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 24, flexWrap: "wrap" }}>
+ <div style={{ maxWidth: 640 }}>
+ <h2 style={{ fontFamily: "var(--font-heading)", fontSize: "clamp(24px, 4vw, 34px)", fontWeight: 700, color: "var(--color-cream)", margin: "0 0 10px", letterSpacing: "-0.01em" }}>
+ {destination} ✨
+ </h2>
+ <p style={{ color: "rgba(251,246,236,0.9)", fontSize: 15, lineHeight: 1.6, margin: "0 0 14px" }}>{trip_summary}</p>
+ {destination_coords && (
+ <p style={{ fontSize: 13, fontWeight: 600, color: "rgba(251,246,236,0.85)", display: "flex", alignItems: "center", gap: 6 }}>
+ <span>📍</span> {destination_coords.display_name}
+ </p>
+ )}
+ </div>
+ <div style={{ textAlign: "right", flexShrink: 0, background: "rgba(20,23,31,0.25)", borderRadius: 14, padding: "14px 18px", border: "1px solid rgba(251,246,236,0.15)" }}>
+ <div style={{ fontSize: 11, fontWeight: 700, color: "rgba(251,246,236,0.75)", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 4 }}>Total Budget</div>
+ <div style={{ fontFamily: "var(--font-heading)", fontSize: 26, fontWeight: 700, color: "var(--color-cream)" }}>{formatINR(budget.total)}</div>
+ </div>
+ </div>
+
+ {/* Weather + Map */}
+ {(weather.length > 0 || destination_coords) && (
+ <div style={{ display: "grid", gridTemplateColumns: "1.1fr 1fr", gap: 20 }} data-mobile-stack="true">
+ {weather.length > 0 && (
+ <div className="card" style={{ padding: 22 }}>
+ {sectionLabel("🌤️ 3-Day Forecast")}
+ <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12 }}>
+ {weather.slice(0, 3).map((w, i) => {
+ const date = new Date(w.date + "T00:00:00");
+ const dayName = date.toLocaleDateString("en-US", { weekday: "short" });
+ const dayNum = date.getDate();
+ return (
+ <div key={i} style={{ background: "var(--color-cream-dark)", border: "2px solid var(--color-ink)", borderRadius: 14, padding: 14, textAlign: "center" }}>
+ <div style={{ fontSize: 13, fontWeight: 600, color: "var(--color-ink-muted)", marginBottom: 8 }}>{dayName} {dayNum}</div>
+ <div style={{ fontSize: 30, marginBottom: 8 }}>{w.description?.split(" ")[0] || "☀️"}</div>
+ <div style={{ fontFamily: "var(--font-heading)", fontSize: 15, color: "var(--color-ink)", fontWeight: 700 }}>
+ {Math.round(w.temp_max)}° <span style={{ color: "var(--color-ink-muted)", fontWeight: 500 }}>/ {Math.round(w.temp_min)}°</span>
+ </div>
+ {w.precip_mm > 0 && (
+ <div style={{ fontSize: 11, fontWeight: 600, color: "var(--color-purple)", marginTop: 6 }}>💧 {w.precip_mm}mm</div>
+ )}
+ </div>
+ );
+ })}
+ </div>
+ </div>
+ )}
+ {destination_coords && (
+ <div>
+ {sectionLabel("🗺️ Destination Map")}
+ <div className="card" style={{ overflow: "hidden", minHeight: 220 }}>
+ <MapView coords={destination_coords} places={enriched_places} />
+ </div>
+ </div>
+ )}
+ </div>
+ )}
+
+ {/* Must-visit places */}
+ {enriched_places.length > 0 && (
+ <div>
+ {sectionLabel("📍 Must-Visit Places")}
+ <div style={{ display: "flex", gap: 16, overflowX: "auto", paddingBottom: 8, scrollSnapType: "x mandatory" }}>
+ {enriched_places.map((p, i) => (
+ <div key={i} style={{ flex: "0 0 240px", background: "var(--color-cream)", border: "2px solid var(--color-ink)", borderRadius: 16, overflow: "hidden", scrollSnapAlign: "start", transition: "transform 0.2s, box-shadow 0.2s, border-color 0.2s" }}
+ onMouseEnter={(e) => { e.currentTarget.style.borderColor = "var(--color-rose)"; e.currentTarget.style.transform = "translateY(-4px)"; e.currentTarget.style.boxShadow = "0 14px 30px -12px rgba(20,23,31,0.25)"; }}
+ onMouseLeave={(e) => { e.currentTarget.style.borderColor = "var(--color-ink)"; e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.boxShadow = "none"; }}>
+ {p.image && (
+ <div style={{ position: "relative", height: 150, overflow: "hidden" }}>
+ <img src={p.image} alt={p.name} loading="lazy"
+ style={{ width: "100%", height: "100%", objectFit: "cover", transition: "transform 0.3s" }}
+ onError={(e) => { e.target.style.display = "none"; }}
+ onMouseEnter={(e) => { e.target.style.transform = "scale(1.06)"; }}
+ onMouseLeave={(e) => { e.target.style.transform = "scale(1)"; }} />
+ <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, rgba(20,23,31,0.85), transparent 60%)", pointerEvents: "none" }} />
+ </div>
+ )}
+ <div style={{ padding: 14 }}>
+ <div style={{ fontFamily: "var(--font-heading)", fontSize: 15, fontWeight: 700, color: "var(--color-ink)", marginBottom: 6 }}>{p.name}</div>
+ {p.description && (
+ <p style={{ fontSize: 13, color: "var(--color-ink-muted)", lineHeight: 1.5, marginBottom: 10, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>{p.description}</p>
+ )}
+ {p.url && (
+ <a href={p.url} target="_blank" rel="noopener noreferrer"
+ style={{ fontSize: 13, fontWeight: 700, color: "var(--color-rose)" }}>
+ Read more →
+ </a>
+ )}
+ </div>
+ </div>
+ ))}
+ </div>
+ </div>
+ )}
+
+ {/* Budget breakdown */}
+ <div className="card" style={{ padding: 24 }}>
+ {sectionLabel("💰 Budget Breakdown")}
+ <div style={{ display: "flex", height: 16, borderRadius: 8, overflow: "hidden", background: "var(--color-cream-dark)", border: "1.5px solid rgba(20,23,31,0.12)" }}>
+ {budgetSegments.map((seg, i) => (
+ <div key={i} title={`${seg.label}: ${formatINR(seg.value)}`} style={{ width: `${seg.pct}%`, background: seg.color, animation: "barGrow 0.7s ease-out both", animationDelay: `${i * 100}ms`, transition: "width 0.6s ease-out" }} />
+ ))}
+ </div>
+ <div style={{ display: "flex", flexWrap: "wrap", gap: 16, marginTop: 16 }}>
+ {budgetItems.map((item) => (
+ <div key={item.label} style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13, fontWeight: 600, color: "var(--color-ink-muted)" }}>
+ <span style={{ width: 10, height: 10, borderRadius: 3, background: item.color, display: "inline-block", flexShrink: 0 }} />
+ {item.icon} {item.label} · {formatINR(item.value)}
+ </div>
+ ))}
+ </div>
+ <div style={{ marginTop: 16, fontSize: 13, fontWeight: 700, color: withinBudget ? "#1E8E5A" : "#DC2626" }}>
+ {withinBudget ? "✓ Within budget — no overages projected" : `⚠ Over budget by ${formatINR(Math.abs(budgetRemaining))}`}
+ </div>
+ </div>
+
+ {/* Day-by-day itinerary */}
+ <div>
+ {sectionLabel("📅 Day-by-Day Itinerary")}
+ <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
+ {days.map((day) => (
+ <div key={day.day} style={{ display: "flex", gap: 18, animation: "fadeUp 0.4s ease-out both", animationDelay: `${(day.day - 1) * 80}ms` }}>
+ <div style={{ display: "flex", flexDirection: "column", alignItems: "center", flexShrink: 0, paddingTop: 4 }}>
+ <div style={{ width: 36, height: 36, borderRadius: "50%", background: "var(--color-lime)", border: "2px solid var(--color-ink)", color: "var(--color-ink)", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "var(--font-heading)", fontWeight: 700, fontSize: 14, flexShrink: 0 }}>
+ {day.day}
+ </div>
+ {day.day < days.length && (
+ <div style={{ width: 2, flex: 1, background: "rgba(20,23,31,0.15)", margin: "4px 0" }} />
+ )}
+ </div>
+ <div style={{ flex: 1, background: "var(--color-cream)", border: "2px solid var(--color-ink)", borderRadius: 16, padding: 20, marginBottom: 20, transition: "border-color 0.2s, transform 0.2s, box-shadow 0.2s" }}
+ onMouseEnter={(e) => { e.currentTarget.style.borderColor = "var(--color-rose)"; e.currentTarget.style.transform = "translateY(-2px)"; e.currentTarget.style.boxShadow = "0 12px 26px -14px rgba(20,23,31,0.2)"; }}
+ onMouseLeave={(e) => { e.currentTarget.style.borderColor = "var(--color-ink)"; e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.boxShadow = "none"; }}>
+ <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12, flexWrap: "wrap", gap: 8 }}>
+ <div style={{ fontFamily: "var(--font-heading)", fontSize: 16, fontWeight: 700, color: "var(--color-ink)" }}>{day.title}</div>
+ <div style={{ fontSize: 12, fontWeight: 700, color: "var(--color-ink)", background: "var(--color-lime)", border: "1.5px solid var(--color-ink)", borderRadius: 20, padding: "4px 12px", whiteSpace: "nowrap" }}>
+ {formatINR(day.estimated_cost_inr)}
+ </div>
+ </div>
+ <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }} data-mobile-stack="true">
+ <div>
+ <div style={{ fontSize: 11, fontWeight: 700, color: "var(--color-ink-muted)", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 8 }}>Activities</div>
+ {day.activities.map((act, i) => (
+ <div key={i} style={{ fontSize: 14, color: "var(--color-ink)", marginBottom: 6, lineHeight: 1.5 }}>▸ {act}</div>
+ ))}
+ </div>
+ <div>
+ <div style={{ fontSize: 11, fontWeight: 700, color: "var(--color-ink-muted)", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 8 }}>Meals</div>
+ {day.meals.map((meal, i) => (
+ <div key={i} style={{ fontSize: 14, color: "var(--color-ink)", marginBottom: 6, lineHeight: 1.5 }}>• {meal}</div>
+ ))}
+ </div>
+ </div>
+ </div>
+ </div>
+ ))}
+ </div>
+ </div>
+
+ {/* Packing list */}
+ <div className="card" style={{ padding: 24 }}>
+ {sectionLabel("🎒 Packing List")}
+ <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px 24px" }}>
+ {packing_list.map((item, i) => (
+ <PackingItem key={i} label={item} />
+ ))}
+ </div>
+ </div>
+
+ {/* Travel tips */}
+ <div style={{ background: "var(--color-tips-bg)", border: "2px solid var(--color-ink)", borderRadius: 18, padding: 24 }}>
+ {sectionLabel("💡 Travel Tips")}
+ {tips.map((tip, i) => (
+ <div key={i} style={{ fontSize: 14, color: "#4A3B1F", lineHeight: 1.6, marginBottom: 8 }}>▸ {tip}</div>
+ ))}
+ </div>
+
+ <div style={{ textAlign: "center", color: "var(--color-ink-faint)", fontSize: 12, fontWeight: 600, marginTop: 8 }}>
+ Generated by AI · Always verify details before traveling
+ </div>
+ </div>
+ );
 }
 
-export default function Results({ data }) {
-	const {
-		destination,
-		trip_summary,
-		days,
-		budget,
-		packing_list,
-		tips,
-		destination_coords,
-		weather = [],
-		enriched_places = [],
-	} = data;
-
-	const totalSpent =
-		budget.flights +
-		budget.hotels +
-		budget.food +
-		budget.transport +
-		budget.activities;
-	const budgetRemaining = budget.total - totalSpent;
-
-	const budgetItems = [
-		{ label: "Flights", value: budget.flights, color: "bg-sky-500", icon: "✈️" },
-		{ label: "Hotels", value: budget.hotels, color: "bg-violet-500", icon: "🏨" },
-		{ label: "Food", value: budget.food, color: "bg-amber-500", icon: "🍽️" },
-		{ label: "Transport", value: budget.transport, color: "bg-teal-500", icon: "🚗" },
-		{ label: "Activities", value: budget.activities, color: "bg-pink-500", icon: "🎟️" },
-	];
-
-	const maxVal = Math.max(...budgetItems.map((b) => b.value));
-
-	return (
-	<div className="space-y-8 animate-fade-in">
-		{/* Trip Summary */}
-		<div className="bg-gradient-to-r from-indigo-600 to-purple-600 rounded-2xl p-6 sm:p-8 shadow-xl shadow-indigo-600/20">
-		<div className="flex items-start justify-between flex-wrap gap-4">
-		<div>
-		<h2 className="text-2xl sm:text-3xl font-bold text-white mb-2">
-		{destination} ✨
-		</h2>
-		<p className="text-white/80 text-sm sm:text-base leading-relaxed max-w-xl">{trip_summary}</p>
-		{destination_coords && (
-			<p className="text-white/50 text-xs mt-2 flex items-center gap-1.5">
-			<span>📍</span> {destination_coords.display_name}
-			</p>
-		)}
-		</div>
-		<div className="text-right">
-		<p className="text-white/60 text-xs uppercase tracking-wider mb-1">Total Budget</p>
-		<p className="text-2xl font-bold text-white">{formatINR(budget.total)}</p>
-		</div>
-		</div>
-		</div>
-
-		{/* Weather + Map row */}
-		{(weather.length > 0 || destination_coords) && (
-			<div className="grid lg:grid-cols-2 gap-6">
-			{weather.length > 0 && (
-				<div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-6">
-				<h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-					🌤️ Weather Forecast
-				</h3>
-				<div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-				{weather.slice(0, 6).map((w, i) => {
-					const date = new Date(w.date);
-					const dayName = date.toLocaleDateString("en-US", { weekday: "short" });
-					const dayNum = date.getDate();
-					return (
-					<div key={i} className="bg-white/5 rounded-xl p-3 text-center border border-white/5 hover:border-white/20 transition">
-					<p className="text-xs text-slate-400 uppercase">{dayName}</p>
-					<p className="text-white font-semibold text-sm">{dayNum}</p>
-					<p className="text-2xl my-1">{w.description.split(" ")[0]}</p>
-					<p className="text-xs text-slate-300">
-					<span className="text-amber-400">{Math.round(w.temp_max)}°</span>
-					{" / "}
-					<span className="text-sky-300">{Math.round(w.temp_min)}°</span>
-					</p>
-					{w.precip_mm > 0 && (
-						<p className="text-[10px] text-sky-400 mt-1">💧 {w.precip_mm}mm</p>
-					)}
-					</div>
-					);
-				})}
-				</div>
-				</div>
-			)}
-			{destination_coords && (
-				<div>
-				<h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-					🗺️ Destination Map
-				</h3>
-				<MapView coords={destination_coords} places={enriched_places} />
-				</div>
-			)}
-			</div>
-		)}
-
-		{/* Budget Breakdown */}
-		<div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-6 sm:p-8">
-		<h3 className="text-lg font-semibold text-white mb-5 flex items-center gap-2">
-			💰 Budget Breakdown
-		</h3>
-		<div className="space-y-4">
-		{budgetItems.map((item) => {
-		const pct = (item.value / maxVal) * 100;
-		return (
-			<div key={item.label}>
-			<div className="flex justify-between text-sm mb-1.5">
-			<span className="text-slate-300 flex items-center gap-2">
-			<span>{item.icon}</span>
-			{item.label}
-			</span>
-			<span className="text-slate-400 font-mono">{formatINR(item.value)}</span>
-			</div>
-			<div className="h-2.5 bg-white/10 rounded-full overflow-hidden">
-			<div
-			className={`h-full ${item.color} rounded-full transition-all duration-700 ease-out`}
-			style={{ width: `${pct}%` }}
-			/>
-			</div>
-			</div>
-		);
-		})}
-		</div>
-		<div className="mt-5 pt-4 border-t border-white/10 flex flex-wrap gap-4 text-sm">
-		<div className="flex items-center gap-2">
-		<span className="w-2.5 h-2.5 rounded-full bg-emerald-400" />
-		<span className="text-slate-400">Total: </span>
-		<span className="text-white font-semibold">{formatINR(totalSpent)}</span>
-		</div>
-		{budgetRemaining >= 0 ? (
-			<div className="flex items-center gap-2">
-			<span className="text-slate-400">Remaining: </span>
-			<span className="text-emerald-400 font-semibold">{formatINR(budgetRemaining)}</span>
-			</div>
-		) : (
-			<div className="flex items-center gap-2">
-			<span className="text-slate-400">Over budget by: </span>
-			<span className="text-red-400 font-semibold">{formatINR(Math.abs(budgetRemaining))}</span>
-			</div>
-		)}
-		</div>
-		</div>
-
-		{/* Enriched Places */}
-		{enriched_places.length > 0 && (
-			<div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-6 sm:p-8">
-			<h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-				📍 Must-Visit Places
-			</h3>
-			<div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-			{enriched_places.map((p, i) => (
-				<div key={i} className="bg-white/5 rounded-xl overflow-hidden border border-white/5 hover:border-white/20 transition group">
-				{p.image && (
-					<div className="h-32 bg-slate-800 overflow-hidden">
-					<img src={p.image} alt={p.name}
-						className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-						onError={(e) => e.target.style.display = "none"}
-					/>
-					</div>
-				)}
-				<div className="p-3">
-				<h4 className="font-semibold text-white text-sm mb-1">{p.name}</h4>
-				{p.description && (
-					<p className="text-xs text-slate-400 line-clamp-3 leading-relaxed">{p.description}</p>
-				)}
-				{p.url && (
-					<a href={p.url} target="_blank" rel="noopener noreferrer"
-						className="text-[11px] text-indigo-400 hover:text-indigo-300 mt-2 inline-block">
-						Read more on Wikipedia →
-					</a>
-				)}
-				</div>
-				</div>
-			))}
-			</div>
-			</div>
-		)}
-
-		{/* Day-by-day itinerary */}
-		<div className="space-y-4">
-		<h3 className="text-lg font-semibold text-white flex items-center gap-2">
-			📅 Day-by-Day Itinerary
-		</h3>
-		{days.map((day) => (
-			<div
-			key={day.day}
-			className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-5 sm:p-6 hover:border-white/20 transition-colors"
-			>
-			<div className="flex items-start gap-4">
-			<div className="flex-shrink-0 w-10 h-10 rounded-full bg-indigo-500/20 flex items-center justify-center text-lg">
-			{dayIcon(day.day)}
-			</div>
-			<div className="flex-1 min-w-0">
-			<div className="flex items-baseline justify-between flex-wrap gap-2 mb-3">
-			<h4 className="font-semibold text-white">
-				Day {day.day}: <span className="text-indigo-300">{day.title}</span>
-			</h4>
-			<span className="text-xs text-slate-500 font-mono">
-				~{formatINR(day.estimated_cost_inr)}
-			</span>
-			</div>
-			<div className="grid sm:grid-cols-2 gap-4">
-			<div>
-			<p className="text-xs font-medium text-slate-400 uppercase tracking-wider mb-2">
-				Activities
-			</p>
-			<ul className="space-y-1.5">
-			{day.activities.map((act, i) => (
-				<li key={i} className="flex items-start gap-2 text-sm text-slate-300">
-				<span className="text-indigo-400 mt-0.5">▸</span>
-				{act}
-				</li>
-			))}
-			</ul>
-			</div>
-			<div>
-			<p className="text-xs font-medium text-slate-400 uppercase tracking-wider mb-2">
-				Meals
-			</p>
-			<ul className="space-y-1.5">
-			{day.meals.map((meal, i) => (
-				<li key={i} className="flex items-start gap-2 text-sm text-slate-300">
-				<span className="text-amber-400 mt-0.5">•</span>
-				{meal}
-				</li>
-			))}
-			</ul>
-			</div>
-			</div>
-			</div>
-			</div>
-			</div>
-		))}
-		</div>
-
-		{/* Packing List */}
-		<div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-6 sm:p-8">
-		<h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-			🎒 Packing List
-		</h3>
-		<div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-		{packing_list.map((item, i) => (
-			<div key={i} className="flex items-center gap-2.5 text-sm text-slate-300 bg-white/5 rounded-lg px-3 py-2">
-			<input type="checkbox" className="accent-indigo-500 w-4 h-4 rounded" />
-			{item}
-			</div>
-		))}
-		</div>
-		</div>
-
-		{/* Travel Tips */}
-		<div className="bg-amber-500/10 border border-amber-500/20 rounded-2xl p-6 sm:p-8">
-		<h3 className="text-lg font-semibold text-amber-300 mb-4 flex items-center gap-2">
-			💡 Travel Tips
-		</h3>
-		<ul className="space-y-2.5">
-		{tips.map((tip, i) => (
-			<li key={i} className="flex items-start gap-3 text-sm text-slate-300">
-			<span className="text-amber-400 mt-0.5 flex-shrink-0">▸</span>
-			{tip}
-			</li>
-		))}
-		</ul>
-		</div>
-
-		<div className="text-center py-4 text-slate-500 text-xs">
-		Generated by AI · Always verify details before traveling
-		</div>
-	</div>
-	);
+function PackingItem({ label }) {
+ const [checked, setChecked] = useState(false);
+ return (
+ <label style={{ display: "flex", alignItems: "center", gap: 12, cursor: "pointer", padding: "6px 0" }}>
+ <span onClick={(e) => { e.preventDefault(); setChecked(!checked); }} style={{ width: 20, height: 20, borderRadius: 6, border: "2px solid var(--color-ink)", background: checked ? "var(--color-lime)" : "var(--color-cream)", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--color-ink)", fontSize: 13, fontWeight: 800, flexShrink: 0, transition: "all 0.2s", cursor: "pointer" }}>
+ {checked ? "✓" : ""}
+ </span>
+ <span style={{ fontSize: 14, color: checked ? "var(--color-ink-faint)" : "var(--color-ink)", textDecoration: checked ? "line-through" : "none", opacity: checked ? 0.7 : 1, transition: "all 0.3s" }}>{label}</span>
+ </label>
+ );
 }
