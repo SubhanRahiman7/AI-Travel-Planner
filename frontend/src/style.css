@@ -1,0 +1,49 @@
+@import "tailwindcss";
+
+@theme {
+ --color-primary: #6366f1;
+ --color-primary-dark: #4f46e5;
+ --color-primary-light: #818cf8;
+ --color-accent: #f59e0b;
+ --color-accent-dark: #d97706;
+ --color-surface: #ffffff;
+ --color-surface-alt: #f8fafc;
+ --color-surface-dark: #1e293b;
+ --color-text-primary: #0f172a;
+ --color-text-secondary: #475569;
+ --color-text-muted: #94a3b8;
+ --color-border: #e2e8f0;
+ --color-success: #22c55e;
+ --color-error: #ef4444;
+ --font-sans: "Inter", system-ui, sans-serif;
+}
+
+@layer base {
+ * {
+ box-sizing: border-box;
+ margin: 0;
+ padding: 0;
+ }
+ body {
+ font-family: var(--font-sans);
+ background: #0f172a;
+ color: var(--color-text-primary);
+ min-height: 100vh;
+ }
+}
+
+@keyframes spin-slow {
+ to { transform: rotate(360deg); }
+}
+@keyframes fade-in {
+ from { opacity: 0; transform: translateY(12px); }
+ to { opacity: 1; transform: translateY(0); }
+}
+@keyframes pulse-glow {
+ 0%, 100% { opacity: 0.4; }
+ 50% { opacity: 0.8; }
+}
+
+.animate-spin-slow { animation: spin-slow 2.5s linear infinite; }
+.animate-fade-in { animation: fade-in 0.5s ease-out forwards; }
+.animate-pulse-glow { animation: pulse-glow 2s ease-in-out infinite; }
