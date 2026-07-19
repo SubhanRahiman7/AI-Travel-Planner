@@ -191,7 +191,8 @@ iconWrapStyleObj: { width: 24, height: 24, borderRadius: "50%", flexShrink: 0, d
  style={{
  position: "absolute",
  inset: "auto 42.5% 0",
- aspectRatio: 1,
+ width: 8,
+ height: 8,
  borderRadius: "50%",
  background: "linear-gradient(135deg, #FF5A3C, #FF2E7E)",
  animation: "loaderBall .75s cubic-bezier(0,900,1,900) infinite",

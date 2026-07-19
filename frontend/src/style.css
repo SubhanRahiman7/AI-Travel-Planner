@@ -92,7 +92,7 @@
 @keyframes loaderTrack { 0% { background-position: 0 100%; } 100% { background-position: -200% 100%; } }
 
 .loader-track {
-	height: 52;
+	height: 52px;
 	aspect-ratio: 2;
 	margin: 0 auto 12px;
 	border-bottom: 3px solid transparent;
