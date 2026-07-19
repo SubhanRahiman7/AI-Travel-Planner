@@ -280,8 +280,8 @@ export default function App() {
 	};
 
 	return (
-		<div className="min-h-screen" style={{ background: isResultValid(result) && !loading ? "var(--color-cream)" : "var(--color-ink)" }}>
-			{loading && <Loader />}
+		<div className="min-h-screen" style={{ background: isResultValid(result) && !loading ? "var(--color-cream)" : "var(--color-ink)", transition: "background-color 0.5s ease" }}>
+			{loading && <Loader className="anim-loader-in" />}
 
 			{error && !loading && !result && (
 				<section style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", padding: "80px 24px 24px", background: "var(--color-cream)" }}>
@@ -308,7 +308,7 @@ export default function App() {
 			</header>
 
 			{isResultValid(result) && !loading && (
-				<section style={{ background: "var(--color-cream)", minHeight: "100vh", padding: "80px 24px 80px" }}>
+				<section className="anim-fade-in" style={{ background: "var(--color-cream)", minHeight: "100vh", padding: "80px 24px 80px" }}>
 					<Results data={result} loadingFlights={loadingFlights} origin={origin} startDate={startDate} onNewSearch={() => { setResult(null); setFlightData(null); setBudgetWarning(""); setBudgetEstimateLoaded(false); }} />
 				</section>
 			)}
