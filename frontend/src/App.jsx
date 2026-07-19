@@ -333,13 +333,35 @@ export default function App() {
 
 						<form onSubmit={handleSubmit} style={{ background: "var(--color-cream)", borderRadius: 24, padding: 28, textAlign: "left", boxShadow: "0 24px 60px -20px rgba(0,0,0,0.5)", border: "2px solid var(--color-ink)" }}>
 
-							{/* Origin city with autocomplete */}
+							{/* Step 1: Destination — always enabled */}
+							<div style={{ position: "relative", marginBottom: 16 }}>
+								<label style={{ display: "block", fontSize: 11, fontWeight: 700, color: "var(--color-ink-muted)", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 8 }}>Destination</label>
+								<input ref={destInputRef} name="destination" required placeholder="Start typing a city..." value={destination} onChange={handleDestinationChange} onKeyDown={handleKeyDown}
+									onFocus={() => { destFocusedRef.current = true; if (destination.trim().length >= 2) setShowSuggestions(true); }}
+									onBlur={() => { destFocusedRef.current = false; setTimeout(() => { if (!destFocusedRef.current) setShowSuggestions(false); }, 150); }}
+									style={{ width: "100%", boxSizing: "border-box", background: "#FFFFFF", border: "2px solid var(--color-ink)", borderRadius: 14, padding: "14px 16px", fontFamily: "var(--font-heading)", fontSize: 15, fontWeight: 600, color: "var(--color-ink)", outline: "none", marginBottom: showSuggestions ? 0 : 6, opacity: 1 }}
+									autocomplete="off"
+								/>
+								{showSuggestions && (
+									<div ref={suggestionsRef} style={{ position: "absolute", top: "100%", left: 0, right: 0, background: "#FFF", border: "2px solid var(--color-ink)", borderRadius: 12, marginTop: 4, maxHeight: 220, overflowY: "auto", zIndex: 50, boxShadow: "0 8px 24px rgba(0,0,0,0.2)", textAlign: "left" }}>
+										{suggestions.map((item, idx) => (
+											<div key={idx} onMouseDown={(e) => { e.preventDefault(); selectSuggestion(item); }} onMouseEnter={() => setActiveSuggestionIdx(idx)}
+												style={{ padding: "12px 16px", cursor: "pointer", background: idx === activeSuggestionIdx ? "var(--color-ink)" : "#FFF", color: idx === activeSuggestionIdx ? "var(--color-cream)" : "var(--color-ink)", borderBottom: "1px solid rgba(20,23,31,0.08)", fontSize: 14, fontWeight: idx === activeSuggestionIdx ? 700 : 500, transition: "background 0.1s" }}>
+												<span style={{ fontWeight: 700 }}>{item.name}</span>
+												{" "}{item.state ? `· ${item.state}` : ""} {item.country ? `· ${item.country}` : ""}
+											</div>
+										))}
+									</div>
+								)}
+							</div>
+
+							{/* Step 1: Departing From — always enabled */}
 							<div style={{ position: "relative", marginBottom: 16 }}>
 								<label style={{ display: "block", fontSize: 11, fontWeight: 700, color: "var(--color-ink-muted)", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 8 }}>Departing From</label>
 								<input ref={originInputRef} name="origin" placeholder="Start city or airport (e.g. Mumbai, Delhi)" value={origin} onChange={handleOriginChange} onKeyDown={handleOriginKeyDown}
 									onFocus={() => { originFocusedRef.current = true; if (origin.trim().length >= 2) setShowOriginSuggestions(true); }}
 									onBlur={() => { originFocusedRef.current = false; setTimeout(() => { if (!originFocusedRef.current) setShowOriginSuggestions(false); }, 150); }}
-									style={{ width: "100%", boxSizing: "border-box", background: "#FFFFFF", border: "2px solid var(--color-ink)", borderRadius: 14, padding: "14px 16px", fontFamily: "var(--font-heading)", fontSize: 15, fontWeight: 600, color: "var(--color-ink)", outline: "none", marginBottom: showOriginSuggestions ? 0 : 6 }}
+									style={{ width: "100%", boxSizing: "border-box", background: "#FFFFFF", border: "2px solid var(--color-ink)", borderRadius: 14, padding: "14px 16px", fontFamily: "var(--font-heading)", fontSize: 15, fontWeight: 600, color: "var(--color-ink)", outline: "none", marginBottom: showOriginSuggestions ? 0 : 6, opacity: 1 }}
 									autocomplete="off"
 								/>
 								{showOriginSuggestions && (
@@ -356,108 +378,92 @@ export default function App() {
 								<p style={{ fontSize: 11, color: "var(--color-ink-muted)", marginTop: 6, fontWeight: 500 }}>{fetchingOrigin ? "Searching..." : "For accurate flight fare estimates"}</p>
 							</div>
 
-							{/* Destination with autocomplete */}
-							<div style={{ position: "relative", marginBottom: 16 }}>
-								<label style={{ display: "block", fontSize: 11, fontWeight: 700, color: "var(--color-ink-muted)", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 8 }}>Destination</label>
-								<input ref={destInputRef} name="destination" required placeholder="Start typing a city..." value={destination} onChange={handleDestinationChange} onKeyDown={handleKeyDown}
-									onFocus={() => { destFocusedRef.current = true; if (destination.trim().length >= 2) setShowSuggestions(true); }}
-									onBlur={() => { destFocusedRef.current = false; setTimeout(() => { if (!destFocusedRef.current) setShowSuggestions(false); }, 150); }}
-									style={{ width: "100%", boxSizing: "border-box", background: "#FFFFFF", border: "2px solid var(--color-ink)", borderRadius: 14, padding: "14px 16px", fontFamily: "var(--font-heading)", fontSize: 15, fontWeight: 600, color: "var(--color-ink)", outline: "none", marginBottom: showSuggestions ? 0 : 6 }}
-									autocomplete="off"
-								/>
-								{showSuggestions && (
-									<div ref={suggestionsRef} style={{ position: "absolute", top: "100%", left: 0, right: 0, background: "#FFF", border: "2px solid var(--color-ink)", borderRadius: 12, marginTop: 4, maxHeight: 220, overflowY: "auto", zIndex: 50, boxShadow: "0 8px 24px rgba(0,0,0,0.2)", textAlign: "left" }}>
-										{suggestions.map((item, idx) => (
-											<div key={idx} onMouseDown={(e) => { e.preventDefault(); selectSuggestion(item); }} onMouseEnter={() => setActiveSuggestionIdx(idx)}
-												style={{ padding: "12px 16px", cursor: "pointer", background: idx === activeSuggestionIdx ? "var(--color-ink)" : "#FFF", color: idx === activeSuggestionIdx ? "var(--color-cream)" : "var(--color-ink)", borderBottom: "1px solid rgba(20,23,31,0.08)", fontSize: 14, fontWeight: idx === activeSuggestionIdx ? 700 : 500, transition: "background 0.1s" }}>
-												<span style={{ fontWeight: 700 }}>{item.name}</span>
-												{" "}{item.state ? `· ${item.state}` : ""} {item.country ? `· ${item.country}` : ""}
-											</div>
-										))}
-									</div>
-								)}
-							</div>
-
+							{/* Budget estimate hint — shown after destination picked */}
 							{budgetEstimateLoaded && budgetTier && (
-								<div className="anim-fade-up" style={{ fontSize: 12, fontWeight: 700, color: "var(--color-ink-muted)", marginBottom: 12, marginTop: -8, marginLeft: 2 }}>
+								<div className="anim-fade-up" style={{ fontSize: 12, fontWeight: 700, color: "var(--color-ink-muted)", marginBottom: 16, marginLeft: 2 }}>
 									Estimated range for {destination}: {budgetTier}
 								</div>
 							)}
-
 							{!budgetEstimateLoaded && destination.trim().length >= 2 && (
 								<div style={{ fontSize: 13, fontWeight: 600, color: "var(--color-ink-muted)", marginBottom: 16 }}>
 									{fetchingSuggestions ? "Estimating budget..." : "Select a destination to estimate your budget"}
 								</div>
 							)}
 
-							{/* Date + Duration row */}
-							<div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 20 }}>
-								<div>
-									<label style={{ display: "block", fontSize: 11, fontWeight: 700, color: "var(--color-ink-muted)", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 8 }}>Start Date</label>
-									<div style={{ position: "relative" }}>
-										<input name="start_date" type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)}
-											style={{ width: "100%", boxSizing: "border-box", background: "#FFFFFF", border: "2px solid var(--color-ink)", borderRadius: 12, padding: "12px 40px 12px 14px", fontFamily: "var(--font-heading)", fontSize: 14, fontWeight: 600, color: "var(--color-ink)", outline: "none", cursor: "pointer", colorScheme: "light" }}
-										/>
-										<span style={{ position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)", fontSize: 16, pointerEvents: "none" }}>📅</span>
-									</div>
-									<p style={{ fontSize: 11, color: "var(--color-ink-muted)", marginTop: 6, fontWeight: 500 }}>For accurate weather forecast</p>
-								</div>
-								<div>
-									<label style={{ display: "block", fontSize: 11, fontWeight: 700, color: "var(--color-ink-muted)", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 8 }}>Duration</label>
-									<div style={{ display: "flex", gap: 6 }} role="group" aria-label="Duration">
-										{DURATIONS.map((d) => (
-											<button key={d} type="button" onClick={() => setDuration(d)}
-												style={{ flex: 1, padding: "12px 0", border: "2px solid var(--color-ink)", borderRadius: 9, fontFamily: "var(--font-heading)", fontSize: 14, fontWeight: d === duration ? 700 : 600, color: d === duration ? "var(--color-cream)" : "var(--color-ink-muted)", background: d === duration ? "var(--color-ink)" : "var(--color-cream)", cursor: "pointer", transition: "all 0.15s" }}>
+							{/* Step 2: Start Date — unlocked after destination selected */}
+							<div style={{ marginBottom: 16 }}>
+								<label style={{ display: "block", fontSize: 11, fontWeight: 700, color: destination ? "var(--color-ink-muted)" : "var(--color-disabled-text)", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 8 }}>Start Date {!destination && <span style={{ fontWeight: 400, fontSize: 10, opacity: 0.7 }}>— select destination first</span>}</label>
+								<input name="start_date" type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} disabled={!destination}
+									style={{ width: "100%", boxSizing: "border-box", background: destination ? "#FFFFFF" : "var(--color-disabled-bg)", border: destination ? "2px solid var(--color-ink)" : "2px solid rgba(20,23,31,0.12)", borderRadius: 12, padding: "12px 14px", fontFamily: "var(--font-heading)", fontSize: 14, fontWeight: 600, color: destination ? "var(--color-ink)" : "var(--color-disabled-text)", outline: "none", cursor: destination ? "pointer" : "not-allowed", colorScheme: "light", transition: "all 0.2s", opacity: destination ? 1 : 0.6 }}
+								/>
+								<p style={{ fontSize: 11, color: "var(--color-ink-muted)", marginTop: 6, fontWeight: 500 }}>For accurate weather forecast</p>
+							</div>
+
+							{/* Step 3: Duration — unlocked after date selected */}
+							<div style={{ marginBottom: 20 }}>
+								<label style={{ display: "block", fontSize: 11, fontWeight: 700, color: startDate ? "var(--color-ink-muted)" : "var(--color-disabled-text)", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 8 }}>Duration {!startDate && <span style={{ fontWeight: 400, fontSize: 10, opacity: 0.7 }}>— select date first</span>}</label>
+								<div style={{ display: "flex", gap: 6 }} role="group" aria-label="Duration">
+									{DURATIONS.map((d) => {
+										const active = d === duration;
+										const locked = !startDate;
+										return (
+											<button key={d} type="button" onClick={() => !locked && setDuration(d)} disabled={locked}
+												style={{ flex: 1, padding: "12px 0", border: active ? "2px solid var(--color-ink)" : "2px solid rgba(20,23,31,0.15)", borderRadius: 9, fontFamily: "var(--font-heading)", fontSize: 14, fontWeight: active ? 700 : 600, color: active && !locked ? "var(--color-cream)" : locked ? "var(--color-disabled-text)" : "var(--color-ink-muted)", background: active && !locked ? "var(--color-ink)" : locked ? "var(--color-disabled-bg)" : "var(--color-cream)", cursor: locked ? "not-allowed" : "pointer", transition: "all 0.15s", opacity: locked ? 0.55 : 1 }}>
 												{d}d
+											</button>
+										);
+									})}
+								</div>
+							</div>
+
+							{/* Step 4: Interests + Travel Style + Transport — unlocked after duration selected */}
+							{duration && (
+								<>
+									{/* Interests */}
+									<label style={{ display: "block", fontSize: 11, fontWeight: 700, color: "var(--color-ink-muted)", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 10 }}>Interests</label>
+									<div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 20 }} role="group" aria-label="Interests">
+										{INTEREST_OPTIONS.map((tag) => {
+											const on = interests.includes(tag);
+											return (
+												<button key={tag} type="button" onClick={() => toggleInterest(tag)} name="interests" value={tag}
+													style={{ padding: "9px 18px", borderRadius: 20, fontSize: 13, cursor: "pointer", transition: "all 0.15s", border: on ? "1.5px solid var(--color-ink)" : "1.5px solid rgba(20,23,31,0.16)", color: on ? "var(--color-cream)" : "var(--color-ink)", background: on ? "linear-gradient(120deg, var(--color-coral), var(--color-rose))" : "var(--color-cream)", fontWeight: on ? 700 : 600, boxShadow: on ? "0 4px 12px rgba(255,46,126,0.35)" : "none", transform: on ? "translateY(-1px)" : "none" }}>
+													{tag}
+												</button>
+											);
+										})}
+									</div>
+
+									{/* Travel Style */}
+									<label style={{ display: "block", fontSize: 11, fontWeight: 700, color: "var(--color-ink-muted)", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 8 }}>Travel Style</label>
+									<div className="pill-group" style={{ marginBottom: 20 }} role="radiogroup" aria-label="Travel style">
+										{TRAVEL_STYLES.map((s) => (
+											<button key={s} type="button" name="travel_style" value={s.toLowerCase()} onClick={() => { setTravelStyle(s); updateBudgetWarning.current(budget || 0, s, duration); }}
+												style={{ flex: 1, padding: "11px 0", border: "none", borderRadius: 9, fontSize: 14, cursor: "pointer", transition: "all 0.15s", color: s === travelStyle ? "var(--color-cream)" : "var(--color-ink-muted)", background: s === travelStyle ? "var(--color-ink)" : "transparent", fontWeight: s === travelStyle ? 700 : 600, boxShadow: s === travelStyle ? "0 2px 6px rgba(20,23,31,0.3)" : "none" }}>
+												{s}
 											</button>
 										))}
 									</div>
-								</div>
-							</div>
 
-							{/* Interests */}
-							<label style={{ display: "block", fontSize: 11, fontWeight: 700, color: "var(--color-ink-muted)", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 10 }}>Interests</label>
-							<div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 22 }} role="group" aria-label="Interests">
-								{INTEREST_OPTIONS.map((tag) => {
-									const on = interests.includes(tag);
-									return (
-										<button key={tag} type="button" onClick={() => toggleInterest(tag)} name="interests" value={tag}
-											style={{ padding: "9px 18px", borderRadius: 20, fontSize: 13, cursor: "pointer", transition: "all 0.15s", border: on ? "1.5px solid var(--color-ink)" : "1.5px solid rgba(20,23,31,0.16)", color: on ? "var(--color-cream)" : "var(--color-ink)", background: on ? "linear-gradient(120deg, var(--color-coral), var(--color-rose))" : "var(--color-cream)", fontWeight: on ? 700 : 600, boxShadow: on ? "0 4px 12px rgba(255,46,126,0.35)" : "none", transform: on ? "translateY(-1px)" : "none" }}>
-											{tag}
-										</button>
-									);
-								})}
-							</div>
+									{/* Transport */}
+									<label style={{ display: "block", fontSize: 11, fontWeight: 700, color: "var(--color-ink-muted)", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 8 }}>Transport</label>
+									<div className="pill-group" style={{ marginBottom: 24 }} role="radiogroup" aria-label="Transport">
+										{TRANSPORT_OPTIONS.map((t) => (
+											<button key={t} type="button" name="transport" value={t.toLowerCase()} onClick={() => setTransport(t)}
+												style={{ flex: 1, padding: "11px 0", border: "none", borderRadius: 9, fontSize: 14, cursor: "pointer", transition: "all 0.15s", color: t === transport ? "var(--color-cream)" : "var(--color-ink-muted)", background: t === transport ? "var(--color-ink)" : "transparent", fontWeight: t === transport ? 700 : 600, boxShadow: t === transport ? "0 2px 6px rgba(20,23,31,0.3)" : "none" }}>
+												{t}
+											</button>
+										))}
+									</div>
+								</>
+							)}
 
-							{/* Travel Style */}
-							<label style={{ display: "block", fontSize: 11, fontWeight: 700, color: "var(--color-ink-muted)", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 8 }}>Travel Style</label>
-							<div className="pill-group" style={{ marginBottom: 20 }} role="radiogroup" aria-label="Travel style">
-								{TRAVEL_STYLES.map((s) => (
-									<button key={s} type="button" name="travel_style" value={s.toLowerCase()} onClick={() => { setTravelStyle(s); updateBudgetWarning.current(budget || 0, s, duration); }}
-										style={{ flex: 1, padding: "11px 0", border: "none", borderRadius: 9, fontSize: 14, cursor: "pointer", transition: "all 0.15s", color: s === travelStyle ? "var(--color-cream)" : "var(--color-ink-muted)", background: s === travelStyle ? "var(--color-ink)" : "transparent", fontWeight: s === travelStyle ? 700 : 600, boxShadow: s === travelStyle ? "0 2px 6px rgba(20,23,31,0.3)" : "none" }}>
-										{s}
-									</button>
-								))}
-							</div>
-
-							{/* Transport */}
-							<label style={{ display: "block", fontSize: 11, fontWeight: 700, color: "var(--color-ink-muted)", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 8 }}>Transport</label>
-							<div className="pill-group" style={{ marginBottom: 28 }} role="radiogroup" aria-label="Transport">
-								{TRANSPORT_OPTIONS.map((t) => (
-									<button key={t} type="button" name="transport" value={t.toLowerCase()} onClick={() => setTransport(t)}
-										style={{ flex: 1, padding: "11px 0", border: "none", borderRadius: 9, fontSize: 14, cursor: "pointer", transition: "all 0.15s", color: t === transport ? "var(--color-cream)" : "var(--color-ink-muted)", background: t === transport ? "var(--color-ink)" : "transparent", fontWeight: t === transport ? 700 : 600, boxShadow: t === transport ? "0 2px 6px rgba(20,23,31,0.3)" : "none" }}>
-										{t}
-									</button>
-								))}
-							</div>
-
-							{/* Budget slider — shown after all options are set */}
-							{budgetEstimateLoaded && (
+							{/* Step 5: Budget slider — unlocked after duration selected */}
+							{budgetEstimateLoaded && duration && (
 								<>
 									<label style={{ display: "block", fontSize: 11, fontWeight: 700, color: "var(--color-ink-muted)", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 8 }}>Budget (₹)</label>
-									<input name="budget" type="range" min={budgetMin} max={budgetMax} step={budgetMax <= 100000 ? 1000 : 5000} value={budget || 0}
+									<input name="budget" type="range" min={budgetMin} max={budgetMax} step={budgetMax <= 100000 ? 1000 : 5000} value={budget || 0} disabled={!duration}
 										onChange={(e) => { const val = parseInt(e.target.value, 10); setBudget(val); updateBudgetWarning.current(val, travelStyle, duration); }}
-										style={{ width: "100%", accentColor: "var(--color-rose)", marginBottom: 6 }}
+										style={{ width: "100%", accentColor: "var(--color-rose)", marginBottom: 6, height: 8 }}
 									/>
 									<div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, fontWeight: 600, color: "var(--color-ink-muted)", marginBottom: 6 }}>
 										<span>{formatINR(budgetMin)}</span>
@@ -472,7 +478,7 @@ export default function App() {
 								</>
 							)}
 
-							<button type="submit" className="btn-primary" disabled={loading || !budgetEstimateLoaded}>
+							<button type="submit" className="btn-primary" disabled={loading || !budgetEstimateLoaded || !duration}>
 								{loading ? "Planning your trip..." : "Plan My Trip"}
 							</button>
 						</form>

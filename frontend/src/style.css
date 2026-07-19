@@ -15,6 +15,8 @@
  --color-amber: #F5A623;
  --color-tips-bg: #FFF3D6;
  --color-tips-text: #8A5A00;
+ --color-disabled-bg: #EDE8DE;
+ --color-disabled-text: #A09888;
  --font-heading: "Space Grotesk", sans-serif;
  --font-body: "Manrope", sans-serif;
 }
@@ -32,8 +34,11 @@
  ::-webkit-scrollbar { height: 6px; width: 6px; }
  ::-webkit-scrollbar-thumb { background: rgba(251,246,236,0.15); border-radius: 4px; }
  input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(0.2); cursor: pointer; }
- input[type="range"] { -webkit-appearance: none; appearance: none; height: 6px; border-radius: 3px; outline: none; cursor: pointer; }
+ input[type="range"] { -webkit-appearance: none; appearance: none; height: 6px; border-radius: 3px; outline: none; cursor: pointer; background: var(--color-ink-muted); }
  input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 20px; height: 20px; border-radius: 50%; background: var(--color-rose); border: 2px solid var(--color-ink); cursor: pointer; }
+ input[type="range"]::-moz-range-track { background: var(--color-ink-muted); height: 6px; border-radius: 3px; }
+ input[type="range"]::-moz-range-thumb { width: 20px; height: 20px; border-radius: 50%; background: var(--color-rose); border: 2px solid var(--color-ink); cursor: pointer; }
+ input[type="range"]:disabled { opacity: 0.4; cursor: not-allowed; }
 }
 
 @layer components {
