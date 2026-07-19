@@ -44,7 +44,7 @@ export default function Results({ data, onNewSearch }) {
  );
 
  return (
- <div className="anim-fade-up" style={{ padding: "40px 0 80px", display: "flex", flexDirection: "column", gap: 32 }}>
+ <div className="anim-fade-up" style={{ padding: "40px 0 80px", maxWidth: 1100, margin: "0 auto", paddingLeft: 24, paddingRight: 24, display: "flex", flexDirection: "column", gap: 32 }}>
  <button onClick={onNewSearch} style={{ background: "var(--color-cream)", border: "2px solid var(--color-ink)", color: "var(--color-ink)", borderRadius: 10, padding: "8px 16px", fontSize: 13, fontWeight: 700, cursor: "pointer", transition: "all 0.15s", alignSelf: "flex-start" }}
  onMouseEnter={(e) => { e.currentTarget.style.background = "var(--color-lime)"; e.currentTarget.style.transform = "translateY(-2px)"; }}
  onMouseLeave={(e) => { e.currentTarget.style.background = "var(--color-cream)"; e.currentTarget.style.transform = "translateY(0)"; }}>

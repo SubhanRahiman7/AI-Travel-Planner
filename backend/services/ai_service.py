@@ -18,7 +18,15 @@ SYSTEM_PROMPT = """Output ONLY valid JSON matching this schema:
  "packing_list": ["..."],
  "tips": ["..."]
 }
-All costs in INR. Budget total must equal user budget exactly. Be destination-specific."""
+All costs in INR. Budget total must equal user budget exactly. Be destination-specific.
+
+For the "flights" budget value: estimate a realistic economy-class round-trip airfare between the origin and destination cities. Consider:
+- Domestic India routes: typically INR 3,000 - 25,000 round trip economy
+- Short international (SE Asia, Middle East): INR 25,000 - 60,000
+- Long international (Europe, Americas): INR 60,000 - 150,000
+- Use real-world knowledge of typical fares between these cities
+- Round trip, single traveler, economy class
+- The flight cost should be reasonable and reflect real market prices"""
 
 
 class AIService:
@@ -67,6 +75,7 @@ class AIService:
 	def generate_itinerary(self, req) -> dict:
 		prompt = f"""{SYSTEM_PROMPT}
 
+Departing from: {req.origin}
 Destination: {req.destination}
 Days: {req.days}
 Budget: INR {req.budget_inr:,.0f}

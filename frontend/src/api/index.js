@@ -42,6 +42,19 @@ export async function estimateBudget(destination, signal) {
 	return res.json();
 }
 
+export async function getFlights(origin, destination, date) {
+	if (!origin || !destination || !date) return null;
+	try {
+		const res = await fetch(
+			`${API_BASE}/api/v1/flights?origin=${encodeURIComponent(origin)}&destination=${encodeURIComponent(destination)}&date=${encodeURIComponent(date)}`
+		);
+		if (!res.ok) return null;
+		return await res.json();
+	} catch {
+		return null;
+	}
+}
+
 export function formatINR(value) {
 	if (value == null || isNaN(value)) return "₹0";
 	const abs = Math.abs(value);
