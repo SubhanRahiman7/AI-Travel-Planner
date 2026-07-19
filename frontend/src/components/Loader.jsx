@@ -3,10 +3,10 @@ import { useEffect, useState } from "react";
 const STEPS = ["Generating plan", "Enriching places", "Getting weather", "Almost done"];
 
 const TAGLINES = [
- "Mapping the best routes for you…",
- "Curating hidden gems and local favorites…",
- "Checking the skies for your travel dates…",
- "Putting the final touches on your trip…",
+ "Calling Gemini AI to build your itinerary…",
+ "Enriching places with Wikipedia data and images…",
+ "Fetching live weather and destination coordinates…",
+ "Almost there — packaging your trip plan…",
 ];
 
 export default function Loader({ className = "" }) {
@@ -191,8 +191,8 @@ iconWrapStyleObj: { width: 24, height: 24, borderRadius: "50%", flexShrink: 0, d
  style={{
  position: "absolute",
  inset: "auto 42.5% 0",
- width: 8,
- height: 8,
+ width: 14,
+ height: 14,
  borderRadius: "50%",
  background: "linear-gradient(135deg, #FF5A3C, #FF2E7E)",
  animation: "loaderBall .75s cubic-bezier(0,900,1,900) infinite",
