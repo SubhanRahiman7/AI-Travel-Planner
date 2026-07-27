@@ -185,6 +185,25 @@ iconWrapStyleObj: { width: 24, height: 24, borderRadius: "50%", flexShrink: 0, d
  {tagline}
  </div>
 
+ <div
+ style={{
+ background: "rgba(255,165,0,0.1)",
+ border: "1px solid rgba(255,165,0,0.35)",
+ borderRadius: 10,
+ padding: "10px 16px",
+ marginBottom: 28,
+ display: "flex",
+ alignItems: "center",
+ gap: 10,
+ }}
+ >
+ <span style={{ fontSize: 18, lineHeight: 1 }}>⏳</span>
+ <span style={{ fontSize: 13, color: "#F5A623", fontWeight: 600, textAlign: "left", lineHeight: 1.4 }}>
+ Our backend runs on Render's free tier, which takes ~30s to wake from sleep.
+ If this takes longer than usual, just hang tight — we're firing it up.
+ </span>
+ </div>
+
  <div style={{ marginBottom: 32 }}>
  <div className="loader-track" style={{ position: "relative" }}>
  <div
