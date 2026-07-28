@@ -331,6 +331,16 @@ export default function App() {
 							A full itinerary — places, weather, budget, packing — built in seconds by AI.
 						</p>
 
+						{/* Cold-start warning — visible when autocomplete is loading */}
+						{(fetchingSuggestions || fetchingOrigin) && (
+							<div style={{ background: "#FFF8E1", border: "1.5px solid #F5A623", borderRadius: 10, padding: "8px 14px", marginBottom: 12, display: "flex", alignItems: "center", gap: 8 }}>
+								<span style={{ fontSize: 16 }}>⏳</span>
+								<span style={{ fontSize: 12, color: "#C78500", fontWeight: 600, lineHeight: 1.4 }}>
+									Backend is on Render's free tier — may take ~30s on cold start. Results loading, please wait.
+								</span>
+							</div>
+						)}
+
 						<form onSubmit={handleSubmit} style={{ background: "var(--color-cream)", borderRadius: 24, padding: 28, textAlign: "left", boxShadow: "0 24px 60px -20px rgba(0,0,0,0.5)", border: "2px solid var(--color-ink)" }}>
 
 							{/* Step 1: Destination — always enabled */}
